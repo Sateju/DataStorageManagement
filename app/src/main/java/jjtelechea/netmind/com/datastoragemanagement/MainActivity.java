@@ -2,6 +2,8 @@ package jjtelechea.netmind.com.datastoragemanagement;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -10,6 +12,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
@@ -27,12 +30,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         editText = (EditText) findViewById(R.id.edtTextUpdate);
         textView = (TextView) findViewById(R.id.textViewHello);
-        Button buttonOk = (Button) findViewById(R.id.btnOk);
-        Button internalStorageButton = (Button) findViewById(R.id.btnInternalStorage);
-        Button buttonGetFiles = (Button) findViewById(R.id.btnGetFiles);
-        buttonOk.setOnClickListener(this);
-        internalStorageButton.setOnClickListener(this);
-        buttonGetFiles.setOnClickListener(this);
+        Button btnOk = (Button) findViewById(R.id.btnOk);
+        Button btnInternalStorage = (Button) findViewById(R.id.btnInternalStorage);
+        Button btnGetFiles = (Button) findViewById(R.id.btnGetFiles);
+        Button btnExternalStorage = (Button) findViewById(R.id.btnExternalStorage);
+        Button btnDataBase = (Button) findViewById(R.id.btnDataBase);
+        btnOk.setOnClickListener(this);
+        btnInternalStorage.setOnClickListener(this);
+        btnGetFiles.setOnClickListener(this);
+        btnExternalStorage.setOnClickListener(this);
+        btnDataBase.setOnClickListener(this);
 
 
         //Leemos las preferences y lo añadimos a la vista
@@ -57,14 +64,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     textView.setText(editText.getText().toString());
                 break;
             case R.id.btnInternalStorage:
-                    almacenarInternamente();
+                    doInternalStorage();
                 break;
             case R.id.btnGetFiles:
+                for (String fileList : this.fileList() )
+                {
+                    Toast.makeText(this, fileList, Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case R.id.btnExternalStorage:
+                doExternalStorage(); //TODO esto no tira :(
+                break;
+            case R.id.btnDataBase:
+                MyDatabase myDatabase = new MyDatabase(getApplicationContext());
+                SQLiteDatabase s = myDatabase.getReadableDatabase(); //Creación de la base de datos
                 break;
         }
     }
 
-    public void almacenarInternamente(){
+    private void doInternalStorage(){
 
         try {
             FileOutputStream mFileOutputStream = openFileOutput("internalStorageFile.txt",Context.MODE_PRIVATE);
@@ -73,4 +91,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mFileOutputStream.close();
         } catch (java.io.IOException e) {e.printStackTrace();}
     }
+
+    private void doExternalStorage(){
+        if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
+            Toast.makeText(this,"Media Mounted true",Toast.LENGTH_SHORT).show();
+        }
+        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED_READ_ONLY)){
+            Toast.makeText(this,"Media Mounted Read Only true",Toast.LENGTH_SHORT).show();
+        }
+
+        File downloadFolder =  new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS),"newDirectory/newSubDirectory");
+        if(!downloadFolder.mkdirs()){
+            Toast.makeText(this,"Directory not created", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 }
